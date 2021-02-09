@@ -4,6 +4,7 @@ import keqing.wangy.command.*;
 import keqing.wangy.entities.*;
 import keqing.wangy.enums.CellType;
 import keqing.wangy.enums.Direction;
+import keqing.wangy.enums.PowerUpType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +32,40 @@ public class Bot {
 
     public Command run() {
 
+        // cari powerup terdekat
+        Cell nearestPowerUp = getNearestPowerUp();
+        // kalau ada, jalan ke sana
+        // cari jalannya
+        // prioritas: sumbu y, baru sumbu x
+        // ilustrasi
+        /* H: Health Pack, P: Player
+        *  .H.
+        *  .P.
+        *  ...
+        *  H.y - P.y = -1
+        * --------------
+        *  ...
+        *  .P.
+        *  .H.
+        *  H.y - P.y = 1
+        * 
+        * dst.
+        */
+        // cari jarak y dan jarak x nya
+        int dy = nearestPowerUp.y - currentWorm.position.y;
+        int dx = nearestPowerUp.x - currentWorm.position.x;
+        // cari tandanya, bagi dengan besar asli tanpa tanda
+        // cth. untuk x = -5, -5/5 = -1 (tandanya -)
+        // untuk x = 5, 5/5 = 1 (tandanya +)
+        dy = dy/Math.abs(dy);
+        dx = dx/Math.abs(dx);
+
+        int nextY = currentWorm.position.y + dy;
+        int nextX = currentWorm.position.x + dx;
+        Command next = MoveOrDig(nextX, nextY);
+        if(next != null) return next;
+
+        // TODO: implementasi greedy yang lain
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
@@ -48,6 +83,33 @@ public class Bot {
         }
 
         return new DoNothingCommand();
+    }
+
+    private Command MoveOrDig(int x, int y){
+        switch(gameState.map[y][x].type){
+            case AIR: return new MoveCommand(x, y);
+            case DIRT: return new DigCommand(x, y);
+            default: return null;
+        }
+    }
+
+    private Cell getNearestPowerUp(){
+        Cell nearestPowerUp = null;
+        for(Cell[] row: gameState.map){
+            for(Cell cell: row){
+                if(cell.powerUp.type == PowerUpType.HEALTH_PACK){
+                    if(nearestPowerUp != null){
+                        if(euclideanDistance(currentWorm, cell) < euclideanDistance(currentWorm, nearestPowerUp)){
+                            nearestPowerUp = cell;
+                        }
+                    }
+                    else{
+                        nearestPowerUp = cell;
+                    }
+                }
+            }
+        }
+        return nearestPowerUp;
     }
 
     private Worm getFirstWormInRange() {
@@ -114,6 +176,10 @@ public class Bot {
 
     private int euclideanDistance(int aX, int aY, int bX, int bY) {
         return (int) (Math.sqrt(Math.pow(aX - bX, 2) + Math.pow(aY - bY, 2)));
+    }
+
+    private int euclideanDistance(Worm a, Cell b){
+        return euclideanDistance(a.position.x, a.position.y, b.x, b.y);
     }
 
     private boolean isValidCoordinate(int x, int y) {
