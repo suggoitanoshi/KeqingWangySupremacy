@@ -2,7 +2,7 @@
 	"author": "A",
 	"email": "email@email.email",
 	"nickName": "keqing wangy supremacy",
-	"botLocation": "/target",
-	"botFileName": "keqing-wangy-supremacy-with-dependencies.jar",
+	"botLocation": "./target",
+	"botFileName": "keqing-wangy-supremacy-jar-with-dependencies.jar",
 	"botLanguage": "java"
 }

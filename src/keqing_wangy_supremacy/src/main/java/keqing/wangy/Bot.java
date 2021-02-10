@@ -51,19 +51,25 @@ public class Bot {
         * 
         * dst.
         */
-        // cari jarak y dan jarak x nya
-        int dy = nearestPowerUp.y - currentWorm.position.y;
-        int dx = nearestPowerUp.x - currentWorm.position.x;
-        // cari tandanya, bagi dengan besar asli tanpa tanda
-        // cth. untuk x = -5, -5/5 = -1 (tandanya -)
-        // untuk x = 5, 5/5 = 1 (tandanya +)
-        dy = dy/Math.abs(dy);
-        dx = dx/Math.abs(dx);
+        if(nearestPowerUp != null){
+            // cari jarak y dan jarak x nya
+            int dy = nearestPowerUp.y - currentWorm.position.y;
+            int dx = nearestPowerUp.x - currentWorm.position.x;
+            // cari tandanya, bagi dengan besar asli tanpa tanda
+            // cth. untuk x = -5, -5/5 = -1 (tandanya -)
+            // untuk x = 5, 5/5 = 1 (tandanya +)
+            if(dy != 0) dy = dy/Math.abs(dy);
+            if(dx != 0) dx = dx/Math.abs(dx);
 
-        int nextY = currentWorm.position.y + dy;
-        int nextX = currentWorm.position.x + dx;
-        Command next = MoveOrDig(nextX, nextY);
-        if(next != null) return next;
+            int nextY = currentWorm.position.y + dy;
+            int nextX = currentWorm.position.x + dx;
+            if(gameState.map[nextY][nextX].type == CellType.AIR) return new MoveCommand(nextX, nextY);
+            else if(gameState.map[nextY][nextX-1].type == CellType.AIR) return new MoveCommand(nextX-1, nextY);
+            else if(gameState.map[nextY-1][nextX].type == CellType.AIR) return new MoveCommand(nextX, nextY-1);
+            else if(gameState.map[nextY][nextX].type == CellType.DIRT) return new DigCommand(nextX, nextY);
+            else if(gameState.map[nextY][nextX-1].type == CellType.DIRT) return new DigCommand(nextX-1, nextY);
+            else if(gameState.map[nextY-1][nextX].type == CellType.DIRT) return new DigCommand(nextX, nextY-1);
+        }
 
         // TODO: implementasi greedy yang lain
         Worm enemyWorm = getFirstWormInRange();
@@ -85,19 +91,11 @@ public class Bot {
         return new DoNothingCommand();
     }
 
-    private Command MoveOrDig(int x, int y){
-        switch(gameState.map[y][x].type){
-            case AIR: return new MoveCommand(x, y);
-            case DIRT: return new DigCommand(x, y);
-            default: return null;
-        }
-    }
-
     private Cell getNearestPowerUp(){
         Cell nearestPowerUp = null;
         for(Cell[] row: gameState.map){
             for(Cell cell: row){
-                if(cell.powerUp.type == PowerUpType.HEALTH_PACK){
+                if(cell.powerUp != null && cell.powerUp.type == PowerUpType.HEALTH_PACK){
                     if(nearestPowerUp != null){
                         if(euclideanDistance(currentWorm, cell) < euclideanDistance(currentWorm, nearestPowerUp)){
                             nearestPowerUp = cell;
