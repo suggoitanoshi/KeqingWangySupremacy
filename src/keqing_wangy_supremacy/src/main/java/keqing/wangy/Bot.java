@@ -191,15 +191,21 @@ public class Bot {
     // To check if enemy is in attack range or not (bomb)
     // locX : position (x) of bomb thrown, locY : same
     // attRange : range of the bomb
-    private boolean checkEnemy(Position locDamage, int attRange) {
+    private boolean checkEnemyInRadius(Position locDamage, int attRange) {
         for (Worm enemyWorm : opponent.worms) {
             if (radiusDistance(enemyWorm, locDamage) <= attRange) return true;
         }
         return false;
     }
 
+    // To check if enemy is in attack or not (range)
+    private boolean checkEnemyInRange(Worm enemy) {
+        if (getFirstWormInRange() != enemy) return false;
+        return true;
+    }
+
     // TODO: ngecek punya sisa brpa, tapi how to access da shiet
-    private String attackPriority(int locX, int locY, Direction direction) {
+    private String attackPriority() {
         if (currentWorm.id == 2) return "banana";
         if (currentWorm.id == 3) return "snowball";
         return "shoot";
