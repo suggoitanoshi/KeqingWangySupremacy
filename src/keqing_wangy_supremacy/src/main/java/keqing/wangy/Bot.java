@@ -206,5 +206,23 @@ public class Bot {
         return Direction.valueOf(builder.toString());
     }
 
+    private Worm getNearestFriend()
+    {
+        Set<String> cells = constructFireDirectionLines(currentWorm.weapon.range)
+                .stream()
+                .flatMap(Collection::stream)
+                .map(cell -> String.format("%d_%d", cell.x, cell.y))
+                .collect(Collectors.toSet());
+
+        for (Worm friendWorm : gameState.myPlayer.worms) {
+            String friendPosition = String.format("%d_%d", friendWorm.position.x, friendWorm.position.y);
+            if (cells.contains(friendPosition)) {
+                return friendWorm;
+            }
+        }
+
+        return null;
+    }
+
     
 }
