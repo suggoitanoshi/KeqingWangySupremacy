@@ -91,6 +91,23 @@ public class Bot {
         return new DoNothingCommand();
     }
 
+    // Get maximum value of an array
+    private int getMax(int[] arr) {
+        int maxValue = arr[0];
+        for (int value : arr) {
+            if (value > maxValue) maxValue = value;
+        }
+        return maxValue;
+    }
+
+    // Get index of a value
+    private int findIndex(int[] arr, int value) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == value) return i;
+        }
+        return -999;
+    }
+
     private Cell getNearestPowerUp(){
         Cell nearestPowerUp = null;
         for(Cell[] row: gameState.map){
@@ -180,6 +197,10 @@ public class Bot {
         return euclideanDistance(a.position.x, a.position.y, b.x, b.y);
     }
 
+    private int euclideanDistance(Worm a, Worm b) {
+        return euclideanDistance(a.position.x, a.position.y, b.position.x, b.position.y);
+    }
+
     private int radiusDistance(int aX, int aY, int bX, int bY) {
         return (int) Math.ceil(Math.sqrt(Math.pow(aX-bX, 2) + Math.pow(aY - bY, 2)));
     }
@@ -253,6 +274,20 @@ public class Bot {
         }
 
         return null;
+    }
+
+    private Worm getNearestEnemy() {
+        int[] enemiesDistance = new int[3];
+        for (int i = 0; i < 3; i++) {
+            if (opponent.worms[i].health > 0) {
+                enemiesDistance[i] = euclideanDistance(currentWorm, opponent.worms[i]);
+            }
+            else {
+                enemiesDistance[i] = -999;
+            }
+        }
+        int maxDistance = getMax(enemiesDistance);
+        return findIndex(enemiesDistance, maxDistance);
     }
 
     private List<Cell> checkSafe(int x, int y) {
