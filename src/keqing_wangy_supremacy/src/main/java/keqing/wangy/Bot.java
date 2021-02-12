@@ -180,6 +180,31 @@ public class Bot {
         return euclideanDistance(a.position.x, a.position.y, b.x, b.y);
     }
 
+    private int radiusDistance(int aX, int aY, int bX, int bY) {
+        return (int) Math.ceil(Math.sqrt(Math.pow(aX-bX, 2) + Math.pow(aY - bY, 2)));
+    }
+
+    private int radiusDistance(Worm a, Position b) {
+        return radiusDistance(a.position.x, a.position.y, b.x, b.y);
+    }
+
+    // To check if enemy is in attack range or not (bomb)
+    // locX : position (x) of bomb thrown, locY : same
+    // attRange : range of the bomb
+    private boolean checkEnemy(Position locDamage, int attRange) {
+        for (Worm enemyWorm : opponent.worms) {
+            if (radiusDistance(enemyWorm, locDamage) <= attRange) return true;
+        }
+        return false;
+    }
+
+    // TODO: ngecek punya sisa brpa, tapi how to access da shiet
+    private String attackPriority(int locX, int locY, Direction direction) {
+        if (currentWorm.id == 2) return "banana";
+        if (currentWorm.id == 3) return "snowball";
+        return "shoot";
+    }
+
     private boolean isValidCoordinate(int x, int y) {
         return x >= 0 && x < gameState.mapSize
                 && y >= 0 && y < gameState.mapSize;
