@@ -249,5 +249,22 @@ public class Bot {
         return null;
     }
 
+    private List<Cell> checkSafe(int x, int y) {
+        ArrayList<Cell> cells = new ArrayList<>();
+        for (int i = x - 1; i <= x + 1; i++) {
+            for (int j = y - 1; j <= y + 1; j++) {
+                // Don't include the current position
+                if (i != x && j != y && isValidCoordinate(i, j)) {
+                    if (gameState.map[j][i].type == CellType.AIR )
+                    {
+                        cells.add(gameState.map[j][i]);
+                    }
+                }
+            }
+        }
+
+        return cells;
+    }
+
     
 }
