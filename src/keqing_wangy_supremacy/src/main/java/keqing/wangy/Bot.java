@@ -205,4 +205,6 @@ public class Bot {
 
         return Direction.valueOf(builder.toString());
     }
+
+    
 }
