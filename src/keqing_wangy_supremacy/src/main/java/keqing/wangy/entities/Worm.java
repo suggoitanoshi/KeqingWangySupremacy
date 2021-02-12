@@ -1,6 +1,7 @@
 package keqing.wangy.entities;
 
 import com.google.gson.annotations.SerializedName;
+import keqing.wangy.enums.Profession;
 
 public class Worm {
     @SerializedName("id")
@@ -17,4 +18,7 @@ public class Worm {
 
     @SerializedName("movementRange")
     public int movementRange;
+
+    @SerializedName("profession")
+    public Profession profession;
 }

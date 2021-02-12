@@ -5,6 +5,7 @@ import keqing.wangy.entities.*;
 import keqing.wangy.enums.CellType;
 import keqing.wangy.enums.Direction;
 import keqing.wangy.enums.PowerUpType;
+import keqing.wangy.enums.Profession;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,47 +32,6 @@ public class Bot {
     }
 
     public Command run() {
-
-        // cari powerup terdekat
-        Cell nearestPowerUp = getNearestPowerUp();
-        // kalau ada, jalan ke sana
-        // cari jalannya
-        // prioritas: sumbu y, baru sumbu x
-        // ilustrasi
-        /* H: Health Pack, P: Player
-        *  .H.
-        *  .P.
-        *  ...
-        *  H.y - P.y = -1
-        * --------------
-        *  ...
-        *  .P.
-        *  .H.
-        *  H.y - P.y = 1
-        * 
-        * dst.
-        */
-        if(nearestPowerUp != null){
-            // cari jarak y dan jarak x nya
-            int dy = nearestPowerUp.y - currentWorm.position.y;
-            int dx = nearestPowerUp.x - currentWorm.position.x;
-            // cari tandanya, bagi dengan besar asli tanpa tanda
-            // cth. untuk x = -5, -5/5 = -1 (tandanya -)
-            // untuk x = 5, 5/5 = 1 (tandanya +)
-            if(dy != 0) dy = dy/Math.abs(dy);
-            if(dx != 0) dx = dx/Math.abs(dx);
-
-            int nextY = currentWorm.position.y + dy;
-            int nextX = currentWorm.position.x + dx;
-            if(gameState.map[nextY][nextX].type == CellType.AIR) return new MoveCommand(nextX, nextY);
-            else if(gameState.map[nextY][nextX-1].type == CellType.AIR) return new MoveCommand(nextX-1, nextY);
-            else if(gameState.map[nextY-1][nextX].type == CellType.AIR) return new MoveCommand(nextX, nextY-1);
-            else if(gameState.map[nextY][nextX].type == CellType.DIRT) return new DigCommand(nextX, nextY);
-            else if(gameState.map[nextY][nextX-1].type == CellType.DIRT) return new DigCommand(nextX-1, nextY);
-            else if(gameState.map[nextY-1][nextX].type == CellType.DIRT) return new DigCommand(nextX, nextY-1);
-        }
-
-        // TODO: implementasi greedy yang lain
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
@@ -125,6 +85,53 @@ public class Bot {
             }
         }
         return nearestPowerUp;
+    }
+
+    private Command goToPowerUp(Cell powerUp){
+        if(currentWorm.position.x == powerUp.x && currentWorm.position.y == powerUp.y) return null;
+        Cell nearestPU = getNearestPowerUp();
+        if(nearestPU == null) return null;
+        return MoveTo(powerUp);
+    }
+
+    private Cell[] getCellsAround(){
+        Cell[] aroundWorm = new Cell[8];
+        int k = 0;
+        for(int i = currentWorm.position.y-1; i < currentWorm.position.y+2; i++){
+            for(int j = currentWorm.position.x-1; j < currentWorm.position.x+2; j++){
+                aroundWorm[k++] = gameState.map[i][j];
+            }
+        }
+        return aroundWorm;
+    }
+
+    private Command MoveTo(Cell cell){
+        if(currentWorm.position.x == cell.x && currentWorm.position.y == cell.y) return null;
+        Cell[] aroundWorm = getCellsAround();
+        Cell leastResistance = null;
+        Direction dir = resolveDirection(currentWorm.position, cell);
+        Direction cur;
+        int cost = Integer.MAX_VALUE, lastCost;
+        for(int i = 0; i < 8 && aroundWorm[i] != null; i++){
+            leastResistance = aroundWorm[i];
+            cur = resolveDirection(currentWorm.position, aroundWorm[i]);
+            lastCost = cost;
+            if(aroundWorm[i].type == CellType.DEEP_SPACE) cost = Integer.MAX_VALUE-1;
+            else{
+                if(dir.x != dir.x) cost++;
+                if(dir.y != cur.y) cost++;
+            }
+            if(cost < lastCost) leastResistance = aroundWorm[i];
+        }
+        switch(leastResistance.type){
+            case AIR:
+                return new MoveCommand(leastResistance.x, leastResistance.y);
+            case DIRT:
+                return new DigCommand(leastResistance.x, leastResistance.y);
+            case DEEP_SPACE:
+            default:
+                return new DoNothingCommand();
+        }
     }
 
     private Worm getFirstWormInRange() {
@@ -227,8 +234,8 @@ public class Bot {
 
     // TODO: ngecek punya sisa brpa, tapi how to access da shiet
     private String attackPriority() {
-        if (currentWorm.id == 2) return "banana";
-        if (currentWorm.id == 3) return "snowball";
+        if (currentWorm.profession == Profession.AGENT) return "banana";
+        if (currentWorm.profession == Profession.TECHNOLOGIST) return "snowball";
         return "shoot";
     }
 
@@ -254,6 +261,21 @@ public class Bot {
         } else if (horizontalComponent > 0) {
             builder.append('E');
         }
+
+        return Direction.valueOf(builder.toString());
+    }
+
+    private Direction resolveDirection(Position a, Cell b){
+        StringBuilder builder = new StringBuilder();
+
+        int vert = b.y - a.y;
+        int hori = b.x - a.x;
+
+        if(vert < 0) builder.append('N');
+        else if(vert > 0) builder.append('S');
+
+        if(hori < 0) builder.append('W');
+        else if(hori > 0) builder.append('E');
 
         return Direction.valueOf(builder.toString());
     }
@@ -287,7 +309,7 @@ public class Bot {
             }
         }
         int maxDistance = getMax(enemiesDistance);
-        return findIndex(enemiesDistance, maxDistance);
+        return opponent.worms[findIndex(enemiesDistance, maxDistance)];
     }
 
     private List<Cell> checkSafe(int x, int y) {
@@ -307,5 +329,34 @@ public class Bot {
         return cells;
     }
 
-    
+    private boolean checkBerkasTembak(Direction dir){
+        int x = currentWorm.position.x, y = currentWorm.position.y;
+        boolean safe = true;
+        do{
+            // "tembak" berkas ke arah dir
+            x += dir.x;
+            y += dir.y;
+            // kalau berkas nabrak sesuatu yang bukan air, berarti gak bisa nembak
+            if(gameState.map[y][x].type != CellType.AIR) safe = false;
+        }
+        while(euclideanDistance(currentWorm.position.x, currentWorm.position.y, x, y) < currentWorm.weapon.range && safe);
+        return safe;
+    }
+
+    private boolean checkInAttackDirection(Worm enemy){
+        return (Math.abs(enemy.position.x - currentWorm.position.x) == Math.abs(enemy.position.y - currentWorm.position.y) ||
+        (enemy.position.x == currentWorm.position.x) || (enemy.position.y == currentWorm.position.y));
+    }
+
+    private Command serangMusuhTerdekat(){
+        // pendekatan yang cukup baik, cukup dekati sampai masuk range dulu, nanti adjust
+        Worm enemy = getNearestEnemy();
+        if(euclideanDistance(currentWorm, enemy) > currentWorm.weapon.range) return MoveTo(gameState.map[enemy.position.y][enemy.position.x]);
+        if(checkInAttackDirection(enemy)){
+            Direction dir = resolveDirection(currentWorm.position, enemy.position);
+            if(checkBerkasTembak(dir)) return new ShootCommand(dir);
+            else return MoveTo(gameState.map[enemy.position.y][enemy.position.x]); // deketin lagi
+        } 
+        return new DoNothingCommand();
+    }
 }
