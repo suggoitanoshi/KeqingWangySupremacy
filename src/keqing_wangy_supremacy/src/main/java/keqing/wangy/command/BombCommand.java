@@ -1,5 +1,6 @@
 package keqing.wangy.command;
 import keqing.wangy.entities.Worm;
+import keqing.wangy.enums.AttackType;
 
 public class BombCommand implements Command {
 
@@ -8,16 +9,15 @@ public class BombCommand implements Command {
     private String bombType;
 
 
-    public BombCommand(int x,int y, int currentWormId) {
+    public BombCommand(int x,int y, AttackType type) {
         this.x = x;
         this.y = y;
-        if (currentWormId == 2)
-        {
-            this.bombType = "banana";
-        }
-        else if (currentWormId == 3)
-        {
-            this.bombType = "snowball";
+        switch(type){
+            case SNOWBALL:
+                this.bombType = "snowball"; break;
+            case BANANA:
+            default:
+                this.bombType = "banana";
         }
     }
 
