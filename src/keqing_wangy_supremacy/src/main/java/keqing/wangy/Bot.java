@@ -30,7 +30,7 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(!checkEnemyInRange(getNearestEnemy())) c = goToPowerUp(); 
+        if(currentWorm.health < 70) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
@@ -110,11 +110,11 @@ public class Bot {
                 cost = 0;
                 if(aroundWorm[i].type == CellType.DIRT || aroundWorm[i].type == CellType.LAVA) cost++;
                 if(dir.x != cur.x)
-                    cost = cost + (cur.x == -dir.x ? 2 : 1);
+                    cost += (cur.x == -dir.x ? 2 : 1);
                 if(dir.y != cur.y)
-                    cost = cost + (cur.y == -dir.y ? 2 : 1);
+                    cost += (cur.y == -dir.y ? 2 : 1);
                 if(aroundWorm[i].occupier != null)
-                    cost++;
+                    cost+=2;
             }
             if(cost < leastCost){
                 leastResistance = aroundWorm[i];
@@ -247,10 +247,11 @@ public class Bot {
             if(dir.x != 0) x += dir.x;
             if(dir.y != 0) y += dir.y;
             // kalau berkas nabrak sesuatu yang bukan air, berarti gak bisa nembak
-            safe = !(gameState.map[y][x].type != CellType.AIR)
-            || (gameState.map[y][x].occupier != null && gameState.map[y][x].occupier.playerId == gameState.myPlayer.id);
+            safe = ((gameState.map[y][x].type == CellType.AIR)
+            || (gameState.map[y][x].occupier != null && gameState.map[y][x].occupier.playerId != gameState.myPlayer.id));
         }
-        while(euclideanDistance(currentWorm.position.x, currentWorm.position.y, x, y) < currentWorm.weapon.range &&
+        while(isValidCoordinate(x, y) &&
+        euclideanDistance(currentWorm.position.x, currentWorm.position.y, x, y) <= currentWorm.weapon.range &&
         safe &&
         (gameState.map[y][x].occupier == null));
         return safe;
@@ -264,7 +265,6 @@ public class Bot {
     private Command serangMusuhTerdekat(){
         //pendekatan yang cukup baik, cukup dekati sampai masuk range dulu, nanti adjust
         Worm enemy = getNearestEnemy();
-        System.out.println(checkEnemyInRange(enemy));
         if(!checkEnemyInRange(enemy)) return MoveTo(enemy.position.x, enemy.position.y);
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
