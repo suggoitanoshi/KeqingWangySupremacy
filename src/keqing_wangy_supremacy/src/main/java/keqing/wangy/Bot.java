@@ -30,7 +30,7 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(!checkEnemyInRange(getNearestEnemy()) || (currentWorm.health < 100)) c = goToPowerUp(); 
+        if(!checkEnemyInRange(getNearestEnemy())) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
@@ -83,7 +83,8 @@ public class Bot {
         int k = 0;
         for(int i = currentWorm.position.y-1; i < currentWorm.position.y+2; i++){
             for(int j = currentWorm.position.x-1; j < currentWorm.position.x+2; j++){
-                if(isValidCoordinate(j,i) && i != currentWorm.position.y && j != currentWorm.position.x) aroundWorm[k++] = gameState.map[i][j];
+                if(!isValidCoordinate(j, i) || (i == currentWorm.position.y && j == currentWorm.position.x)) continue;
+                aroundWorm[k++] = gameState.map[i][j];
             }
         }
         return aroundWorm;
@@ -91,7 +92,7 @@ public class Bot {
 
     private Command MoveTo(int x, int y){
         // berusaha bergerak ke posisi (x,y)
-        if(currentWorm.position.x == x && currentWorm.position.y == y) return null;
+        //if(currentWorm.position.x == x && currentWorm.position.y == y) return null;
         // cari sel di sekitar worm yang membutuhkan turn ter-sedikit untuk bergerak ke target
         Cell[] aroundWorm = getCellsAround();
         Cell leastResistance = null;
@@ -103,7 +104,7 @@ public class Bot {
             if(aroundWorm[i].type == CellType.DEEP_SPACE) cost = Integer.MAX_VALUE-1;
             else{
                 cost = 0;
-                if(aroundWorm[i].type == CellType.DIRT || aroundWorm[i].type == CellType.LAVA) cost++;
+                if(aroundWorm[i].type != CellType.AIR) cost++;
                 if(dir.x != cur.x)
                     cost += (cur.x == -dir.x ? 2 : 1);
                 if(dir.y != cur.y)
@@ -160,7 +161,6 @@ public class Bot {
         return (euclideanDistance(currentWorm, enemy) <= currentWorm.weapon.range);
     }
 
-    // TODO: ngecek punya sisa brpa, tapi how to access da shiet
     private AttackType attackPriority() {
         if (currentWorm.profession == Profession.AGENT && currentWorm.bananaBomb.count > 0) return AttackType.BANANA;
         if (currentWorm.profession == Profession.TECHNOLOGIST && currentWorm.snowball.count > 0) return AttackType.SNOWBALL;
