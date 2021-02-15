@@ -5,7 +5,7 @@
   "verbose-mode": true,
   "max-runtime-ms": 1000,
   "player-a": "./keqing_wangy_supremacy/",
-  "player-b": "./opponents/imb4",
+  "player-b": "./reference-bot/javascript",
   "max-request-retries": 10,
   "request-timeout-ms": 5000,
   "is-tournament-mode": false,

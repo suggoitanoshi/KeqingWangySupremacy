@@ -30,7 +30,7 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(currentWorm.health < 70) c = goToPowerUp(); 
+        if(!checkEnemyInRange(getNearestEnemy()) && !(currentWorm.health < 100)) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
@@ -269,8 +269,8 @@ public class Bot {
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
             if(
-                (currentWorm.snowball != null && checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius)) ||
-                (currentWorm.bananaBomb != null && checkFriendInRadius(enemy.position, currentWorm.bananaBomb.damageRadius))
+                (currentWorm.snowball != null && !checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius)) ||
+                (currentWorm.bananaBomb != null && !checkFriendInRadius(enemy.position, currentWorm.bananaBomb.damageRadius))
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
         }
