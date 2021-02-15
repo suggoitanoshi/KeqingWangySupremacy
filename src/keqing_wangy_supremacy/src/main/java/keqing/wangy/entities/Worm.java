@@ -21,4 +21,7 @@ public class Worm {
 
     @SerializedName("profession")
     public Profession profession;
+
+    @SerializedName("roundsUntilUnfrozen")
+    public int roundsUnfroze;
 }

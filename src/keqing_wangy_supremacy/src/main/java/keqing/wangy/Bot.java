@@ -217,8 +217,8 @@ public class Bot {
             if(dir.x != 0) x += dir.x;
             if(dir.y != 0) y += dir.y;
             // kalau berkas nabrak sesuatu yang bukan air, berarti gak bisa nembak
-            safe = ((gameState.map[y][x].type == CellType.AIR)
-            || (gameState.map[y][x].occupier != null && gameState.map[y][x].occupier.playerId != gameState.myPlayer.id));
+            safe = (gameState.map[y][x].type == CellType.AIR);
+            safe &= !(gameState.map[y][x].occupier != null && gameState.map[y][x].occupier.playerId == gameState.myPlayer.id);
         }
         while(isValidCoordinate(x, y) &&
         euclideanDistance(currentWorm.position.x, currentWorm.position.y, x, y) <= currentWorm.weapon.range &&
@@ -240,7 +240,7 @@ public class Bot {
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
             if(
-                (currentWorm.snowball != null && !checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius)) ||
+                (currentWorm.snowball != null && !checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius) && enemy.roundsUnfroze == 0) ||
                 (currentWorm.bananaBomb != null && !checkFriendInRadius(enemy.position, currentWorm.bananaBomb.damageRadius))
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
