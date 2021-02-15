@@ -30,19 +30,12 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(!checkEnemyInRange(getNearestEnemy()) && !(currentWorm.health < 100)) c = goToPowerUp(); 
+        if(!checkEnemyInRange(getNearestEnemy()) || (currentWorm.health < 100)) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
 
     // Get maximum value of an array
-    private int getMax(int[] arr) {
-        int maxValue = arr[0];
-        for (int value : arr) {
-            if (value > maxValue) maxValue = value;
-        }
-        return maxValue;
-    }
 
     private int getMin(int[] arr){
         int minValue = arr[0];
@@ -97,7 +90,9 @@ public class Bot {
     }
 
     private Command MoveTo(int x, int y){
+        // berusaha bergerak ke posisi (x,y)
         if(currentWorm.position.x == x && currentWorm.position.y == y) return null;
+        // cari sel di sekitar worm yang membutuhkan turn ter-sedikit untuk bergerak ke target
         Cell[] aroundWorm = getCellsAround();
         Cell leastResistance = null;
         Direction dir = resolveDirection(currentWorm.position, x, y);
@@ -152,17 +147,8 @@ public class Bot {
         return radiusDistance(a.position.x, a.position.y, b.x, b.y);
     }
 
-    // To check if enemy is in attack range or not (bomb)
-    // locX : position (x) of bomb thrown, locY : same
-    // attRange : range of the bomb
-    private boolean checkEnemyInRadius(Position locDamage, int attRange) {
-        for (Worm enemyWorm : opponent.worms) {
-            if (radiusDistance(enemyWorm, locDamage) <= attRange) return true;
-        }
-        return false;
-    }
-
     private boolean checkFriendInRadius(Position loc, int range){
+        // lihat apakah ada teman di radius
         for(Worm worm: gameState.myPlayer.worms){
             if(radiusDistance(worm, loc) <= range) return true;
         }
@@ -222,24 +208,8 @@ public class Bot {
         return opponent.worms[findIndex(enemiesDistance, maxDistance)];
     }
 
-    private List<Cell> checkSafe(int x, int y) {
-        ArrayList<Cell> cells = new ArrayList<>();
-        for (int i = x - 1; i <= x + 1; i++) {
-            for (int j = y - 1; j <= y + 1; j++) {
-                // Don't include the current position
-                if (i != x && j != y && isValidCoordinate(i, j)) {
-                    if (gameState.map[j][i].type == CellType.AIR )
-                    {
-                        cells.add(gameState.map[j][i]);
-                    }
-                }
-            }
-        }
-
-        return cells;
-    }
-
-    private boolean checkBerkasTembak(Direction dir, Worm enemy){
+    private boolean checkBerkasTembak(Direction dir){
+        // cek apakah "ray" dari worm sekarang ke arah dir ada halangan
         int x = currentWorm.position.x, y = currentWorm.position.y;
         boolean safe = true;
         do{
@@ -258,6 +228,7 @@ public class Bot {
     }
 
     private boolean checkInAttackDirection(Worm enemy){
+        // cek apakah enemy ada di salah satu dari 8 arah
         return (Math.abs(enemy.position.x - currentWorm.position.x) == Math.abs(enemy.position.y - currentWorm.position.y)) ||
         (enemy.position.x == currentWorm.position.x) || (enemy.position.y == currentWorm.position.y);
     }
@@ -276,7 +247,7 @@ public class Bot {
         }
         if(checkInAttackDirection(enemy)){
             Direction dir = resolveDirection(currentWorm.position, enemy.position);
-            if(checkBerkasTembak(dir, enemy)) return new ShootCommand(dir);
+            if(checkBerkasTembak(dir)) return new ShootCommand(dir);
             else return MoveTo(enemy.position.x, enemy.position.y); // deketin lagi
         } 
         else return MoveTo(enemy.position.x, enemy.position.y);
