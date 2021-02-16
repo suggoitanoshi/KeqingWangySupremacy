@@ -1,7 +1,5 @@
 package keqing.wangy.entities;
 
-import java.io.Serial;
-
 import com.google.gson.annotations.SerializedName;
 import keqing.wangy.enums.CellType;
 

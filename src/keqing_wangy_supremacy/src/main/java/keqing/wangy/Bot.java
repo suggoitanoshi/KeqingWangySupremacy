@@ -236,7 +236,6 @@ public class Bot {
     private Command serangMusuhTerdekat(){
         //pendekatan yang cukup baik, cukup dekati sampai masuk range dulu, nanti adjust
         Worm enemy = getNearestEnemy();
-        if(!checkEnemyInRange(enemy)) return MoveTo(enemy.position.x, enemy.position.y);
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
             if(
@@ -245,6 +244,7 @@ public class Bot {
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
         }
+        if(!checkEnemyInRange(enemy)) return MoveTo(enemy.position.x, enemy.position.y);
         if(checkInAttackDirection(enemy)){
             Direction dir = resolveDirection(currentWorm.position, enemy.position);
             if(checkBerkasTembak(dir)) return new ShootCommand(dir);
