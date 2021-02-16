@@ -30,7 +30,7 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(!checkEnemyInRange(getNearestEnemy())) c = goToPowerUp(); 
+        if(currentWorm.health < 70) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
