@@ -30,7 +30,7 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(currentWorm.health < 70 || !checkEnemyInRange(getNearestEnemy())) c = goToPowerUp(); 
+        if(currentWorm.health < 100) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
@@ -111,6 +111,13 @@ public class Bot {
                     cost += (cur.y == -dir.y ? 2 : 1);
                 if(aroundWorm[i].occupier != null)
                     cost+=5;
+                for(Opponent opp: gameState.opponents){
+                    for(Worm worm: opp.worms){
+                        if(
+                            (worm.position.x != aroundWorm[i].x || worm.position.y != aroundWorm[i].y) &&
+                            checkEnemyInRange(worm) && checkBerkasTembak(resolveDirection(currentWorm.position, worm.position))) cost++;
+                    }
+                }
             }
             if(cost < leastCost){
                 leastResistance = aroundWorm[i];
@@ -263,10 +270,12 @@ public class Bot {
             if(
                 (currentWorm.snowball != null &&
                     enemy.roundsUnfroze == 0 &&
-                    enemyDistance < currentWorm.snowball.range) ||
+                    enemyDistance < currentWorm.snowball.range &&
+                    euclideanDistance(currentWorm, enemy) <= currentWorm.snowball.range) ||
                 (currentWorm.bananaBomb != null &&
-                    enemyDistance < currentWorm.bananaBomb.range) &&
-                enemyCount >= friendCount
+                    enemyDistance < currentWorm.bananaBomb.range &&
+                    euclideanDistance(currentWorm, enemy) <= currentWorm.bananaBomb.range) &&
+                enemyCount > friendCount
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
         }
@@ -274,8 +283,7 @@ public class Bot {
         if(checkInAttackDirection(enemy)){
             Direction dir = resolveDirection(currentWorm.position, enemy.position);
             if(checkBerkasTembak(dir)) return new ShootCommand(dir);
-            else return MoveTo(enemy.position.x, enemy.position.y); // deketin lagi
         } 
-        else return MoveTo(enemy.position.x, enemy.position.y);
+        return MoveTo(enemy.position.x, enemy.position.y);
     }
 }
