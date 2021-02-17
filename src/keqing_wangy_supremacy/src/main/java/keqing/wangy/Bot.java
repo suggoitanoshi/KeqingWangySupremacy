@@ -236,12 +236,16 @@ public class Bot {
     private Command serangMusuhTerdekat(){
         //pendekatan yang cukup baik, cukup dekati sampai masuk range dulu, nanti adjust
         Worm enemy = getNearestEnemy();
-        if(gameState.map[currentWorm.position.y][currentWorm.position.x].type == CellType.LAVA) MoveTo(enemy.position.x, enemy.position.y);
+        if(gameState.map[currentWorm.position.y][currentWorm.position.x].type == CellType.LAVA) return MoveTo(enemy.position.x, enemy.position.y);
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
+            int enemyDistance = euclideanDistance(currentWorm, enemy);
             if(
-                (currentWorm.snowball != null && !checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius) && enemy.roundsUnfroze == 0) ||
-                (currentWorm.bananaBomb != null && !checkFriendInRadius(enemy.position, currentWorm.bananaBomb.damageRadius))
+                (currentWorm.snowball != null &&
+                    !checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius) && enemy.roundsUnfroze == 0 &&
+                    enemyDistance < currentWorm.snowball.range) ||
+                (currentWorm.bananaBomb != null && !checkFriendInRadius(enemy.position, currentWorm.bananaBomb.damageRadius) &&
+                    enemyDistance < currentWorm.bananaBomb.range)
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
         }
