@@ -110,7 +110,7 @@ public class Bot {
                 if(dir.y != cur.y)
                     cost += (cur.y == -dir.y ? 2 : 1);
                 if(aroundWorm[i].occupier != null)
-                    cost+=2;
+                    cost+=5;
             }
             if(cost < leastCost){
                 leastResistance = aroundWorm[i];
