@@ -236,6 +236,7 @@ public class Bot {
     private Command serangMusuhTerdekat(){
         //pendekatan yang cukup baik, cukup dekati sampai masuk range dulu, nanti adjust
         Worm enemy = getNearestEnemy();
+        if(gameState.map[currentWorm.position.y][currentWorm.position.x].type == CellType.LAVA) MoveTo(enemy.position.x, enemy.position.y);
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
             if(
