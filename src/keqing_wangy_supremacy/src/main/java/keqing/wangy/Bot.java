@@ -30,7 +30,7 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(currentWorm.health < 70) c = goToPowerUp(); 
+        if(currentWorm.health < 70 || !checkEnemyInRange(getNearestEnemy())) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
         return c;
     }
@@ -148,12 +148,23 @@ public class Bot {
         return radiusDistance(a.position.x, a.position.y, b.x, b.y);
     }
 
-    private boolean checkFriendInRadius(Position loc, int range){
+    private int friendCountInRadius(Position loc, int range){
         // lihat apakah ada teman di radius
+        int count = 0;
         for(Worm worm: gameState.myPlayer.worms){
-            if(radiusDistance(worm, loc) <= range) return true;
+            if(radiusDistance(worm, loc) <= range) count++;
         }
-        return false;
+        return count;
+    }
+
+    private int enemyCountInRadius(Position loc, int range){
+        int count = 0;
+        for(Opponent opp: gameState.opponents){
+            for(Worm worm: opp.worms){
+                if(radiusDistance(worm, loc) <= range) count++;
+            }
+        }
+        return count;
     }
 
     // To check if enemy is in attack or not (range)
@@ -240,12 +251,22 @@ public class Bot {
         AttackType type = attackPriority();
         if(type != AttackType.SHOOT){
             int enemyDistance = euclideanDistance(currentWorm, enemy);
+            int enemyCount, friendCount;
+            if(type == AttackType.SNOWBALL){
+                enemyCount = enemyCountInRadius(enemy.position, currentWorm.snowball.freezeRadius);
+                friendCount = friendCountInRadius(enemy.position, currentWorm.snowball.freezeRadius);
+            }
+            else{
+                enemyCount = enemyCountInRadius(enemy.position, currentWorm.bananaBomb.damageRadius);
+                friendCount = friendCountInRadius(enemy.position, currentWorm.bananaBomb.damageRadius);
+            }
             if(
                 (currentWorm.snowball != null &&
-                    !checkFriendInRadius(enemy.position, currentWorm.snowball.freezeRadius) && enemy.roundsUnfroze == 0 &&
+                    enemy.roundsUnfroze == 0 &&
                     enemyDistance < currentWorm.snowball.range) ||
-                (currentWorm.bananaBomb != null && !checkFriendInRadius(enemy.position, currentWorm.bananaBomb.damageRadius) &&
-                    enemyDistance < currentWorm.bananaBomb.range)
+                (currentWorm.bananaBomb != null &&
+                    enemyDistance < currentWorm.bananaBomb.range) &&
+                enemyCount >= friendCount
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
         }
