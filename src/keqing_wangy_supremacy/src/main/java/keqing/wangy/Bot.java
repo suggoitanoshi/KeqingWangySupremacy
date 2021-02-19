@@ -30,8 +30,9 @@ public class Bot {
 
     public Command run() {
         Command c = null;
-        if(currentWorm.health < 100) c = goToPowerUp(); 
+        if(currentWorm.health < 70) c = goToPowerUp(); 
         if(c == null) c = serangMusuhTerdekat();
+        if(c == null) return new DoNothingCommand();
         return c;
     }
 
@@ -92,7 +93,7 @@ public class Bot {
 
     private Command MoveTo(int x, int y){
         // berusaha bergerak ke posisi (x,y)
-        //if(currentWorm.position.x == x && currentWorm.position.y == y) return null;
+        if(currentWorm.position.x == x && currentWorm.position.y == y) return null;
         // cari sel di sekitar worm yang membutuhkan turn ter-sedikit untuk bergerak ke target
         Cell[] aroundWorm = getCellsAround();
         Cell leastResistance = null;
@@ -270,12 +271,10 @@ public class Bot {
             if(
                 (currentWorm.snowball != null &&
                     enemy.roundsUnfroze == 0 &&
-                    enemyDistance < currentWorm.snowball.range &&
-                    euclideanDistance(currentWorm, enemy) <= currentWorm.snowball.range) ||
+                    enemyDistance < currentWorm.snowball.range) ||
                 (currentWorm.bananaBomb != null &&
-                    enemyDistance < currentWorm.bananaBomb.range &&
-                    euclideanDistance(currentWorm, enemy) <= currentWorm.bananaBomb.range) &&
-                enemyCount > friendCount
+                    enemyDistance < currentWorm.bananaBomb.range) &&
+                enemyCount >= friendCount
             )
                 return new BombCommand(enemy.position.x, enemy.position.y, type);
         }
